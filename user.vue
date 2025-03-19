@@ -15,11 +15,21 @@
       <li><router-link to="/login">Đăng xuất</router-link></li>
     </ul>
   </aside>
+    <!-- Quản lý người dùng -->
     <div class="user-management">
       <h1>Quản lý Người Dùng</h1>
 
+      <!-- Form thêm người dùng -->
+      <div class="add-user">
+        <h2>Thêm người dùng</h2>
+        <input v-model="newUser.username" placeholder="Tên đăng nhập" />
+        <input v-model="newUser.email" placeholder="Email" />
+        <button @click="addUser" class="add-button">Thêm</button>
+      </div>
+
       <!-- Danh sách người dùng -->
       <div class="user-list">
+        <h2>Danh sách người dùng</h2>
         <table>
           <thead>
             <tr>
@@ -33,56 +43,32 @@
           <tbody>
             <tr v-for="user in users" :key="user.id">
               <td>{{ user.id }}</td>
-              <td>{{ user.username }}</td>
-              <td>{{ user.email }}</td>
-              <td :class="{ 'active': user.status === 'Hoạt động', 'blocked': user.status === 'Đã khóa' }">
-                {{ user.status }}
+              <td>
+                <template v-if="editingUserId === user.id">
+                  <input v-model="editUser.username" />
+                </template>
+                <template v-else>{{ user.username }}</template>
               </td>
               <td>
-                <button @click="viewUserDetails(user)" class="details-button">Xem Chi Tiết</button>
-                <button @click="toggleUserStatus(user)" class="toggle-button">
-                  {{ user.status === 'Hoạt động' ? 'Khóa' : 'Mở khóa' }}
-                </button>
+                <template v-if="editingUserId === user.id">
+                  <input v-model="editUser.email" />
+                </template>
+                <template v-else>{{ user.email }}</template>
+              </td>
+              <td>{{ user.status }}</td>
+              <td>
+                <template v-if="editingUserId === user.id">
+                  <button @click="saveEdit(user.id)" class="save-button">Lưu</button>
+                  <button @click="cancelEdit" class="cancel-button">Hủy</button>
+                </template>
+                <template v-else>
+                  <button @click="startEdit(user)" class="edit-button">Sửa</button>
+                  <button @click="deleteUser(user.id)" class="delete-button">Xóa</button>
+                </template>
               </td>
             </tr>
           </tbody>
         </table>
-      </div>
-
-      <!-- Chi tiết người dùng -->
-      <div v-if="selectedUser" class="user-details">
-        <h2>Chi Tiết Người Dùng</h2>
-        <p><strong>User ID:</strong> {{ selectedUser.id }}</p>
-        <p><strong>Username:</strong> {{ selectedUser.username }}</p>
-        <p><strong>Email:</strong> {{ selectedUser.email }}</p>
-        <p><strong>Trạng Thái:</strong> {{ selectedUser.status }}</p>
-
-        <!-- Lịch sử thanh toán -->
-        <h3>Lịch Sử Thanh Toán</h3>
-        <table>
-          <thead>
-            <tr>
-              <th>ID Giao Dịch</th>
-              <th>Số Tiền</th>
-              <th>Ngày Giao Dịch</th>
-              <th>Phương Thức</th>
-              <th>Trạng Thái</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="transaction in selectedUser.transactions" :key="transaction.id">
-              <td>{{ transaction.id }}</td>
-              <td>{{ transaction.amount }} VND</td>
-              <td>{{ transaction.date }}</td>
-              <td>{{ transaction.method }}</td>
-              <td
-                :class="{ 'success': transaction.status === 'Thành công', 'failed': transaction.status === 'Thất bại' }">
-                {{ transaction.status }}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        <button @click="closeUserDetails" class="close-button">Đóng</button>
       </div>
     </div>
   </div>
@@ -91,52 +77,154 @@
 <script setup>
 import { ref } from 'vue';
 
-// Danh sách người dùng mẫu
+// Danh sách người dùng
 const users = ref([
-  {
-    id: 'U001',
-    username: 'NguyenVanA',
-    email: 'nguyenvana@example.com',
-    status: 'Hoạt động',
-    transactions: [
-      { id: 'T001', amount: 500000, date: '2023-04-01', method: 'Momo', status: 'Thành công' },
-      { id: 'T002', amount: 300000, date: '2023-04-05', method: 'VNPay', status: 'Thành công' },
-    ],
-  },
-  {
-    id: 'U002',
-    username: 'TranThiB',
-    email: 'tranthib@example.com',
-    status: 'Đã khóa',
-    transactions: [
-      { id: 'T003', amount: 700000, date: '2023-03-15', method: 'Creat Card', status: 'Thành công' },
-    ],
-  },
+  { id: "U001", username: "NguyenVanA", email: "nguyenvana@example.com", status: "Hoạt động" },
+  { id: "U002", username: "TranThiB", email: "tranthib@example.com", status: "Đã khóa" },
 ]);
 
-// Người dùng được chọn
-const selectedUser = ref(null);
+// Dữ liệu người dùng mới
+const newUser = ref({ username: "", email: "" });
 
-// Xem chi tiết người dùng
-const viewUserDetails = (user) => {
-  selectedUser.value = user;
+// Người dùng chỉnh sửa
+const editingUserId = ref(null);
+const editUser = ref({ username: "", email: "" });
+
+// Thêm người dùng
+const addUser = () => {
+  if (newUser.value.username && newUser.value.email) {
+    const newId = `U00${users.value.length + 1}`;
+    users.value.push({ id: newId, ...newUser.value, status: "Hoạt động" });
+    newUser.value = { username: "", email: "" };
+    alert("Người dùng mới đã được thêm!");
+  } else {
+    alert("Vui lòng nhập đầy đủ thông tin!");
+  }
 };
 
-// Đóng chi tiết người dùng
-const closeUserDetails = () => {
-  selectedUser.value = null;
+// Bắt đầu chỉnh sửa
+const startEdit = (user) => {
+  editingUserId.value = user.id;
+  editUser.value = { ...user };
 };
 
-// Khóa / mở khóa tài khoản người dùng
-const toggleUserStatus = (user) => {
-  user.status = user.status === 'Hoạt động' ? 'Đã khóa' : 'Hoạt động';
-  alert(`Trạng thái của người dùng "${user.username}" đã thay đổi thành "${user.status}".`);
+// Lưu chỉnh sửa
+const saveEdit = (id) => {
+  const index = users.value.findIndex((user) => user.id === id);
+  if (index !== -1) {
+    users.value[index].username = editUser.value.username;
+    users.value[index].email = editUser.value.email;
+    editingUserId.value = null;
+    alert("Cập nhật thông tin thành công!");
+  }
+};
+
+// Hủy chỉnh sửa
+const cancelEdit = () => {
+  editingUserId.value = null;
+};
+
+// Xóa người dùng
+const deleteUser = (id) => {
+  const confirmed = confirm("Bạn có chắc chắn muốn xóa người dùng này?");
+  if (confirmed) {
+    users.value = users.value.filter((user) => user.id !== id);
+    alert("Người dùng đã bị xóa!");
+  }
 };
 </script>
 
+
 <style scoped>
 @import "/src/assets/css/admin.css";
+.add-user {
+  margin-bottom: 20px;
+  background: #f9f9f9;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
 
+.add-user input {
+  margin-right: 10px;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.add-button {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.add-button:hover {
+  background-color: #218838;
+}
+
+/* Giao diện bảng danh sách */
+.user-list table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.user-list th,
+.user-list td {
+  padding: 10px;
+  border: 1px solid #ddd;
+}
+
+.user-list th {
+  background-color: #f4f4f4;
+}
+
+.edit-button, .delete-button, .save-button, .cancel-button {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  color: white;
+  font-size: 14px;
+}
+
+/* Nút Sửa */
+.edit-button {
+  background-color: #007bff;
+}
+
+.edit-button:hover {
+  background-color: #0056b3;
+}
+
+/* Nút Xóa */
+.delete-button {
+  background-color: #dc3545;
+}
+
+.delete-button:hover {
+  background-color: #c82333;
+}
+
+/* Nút Lưu */
+.save-button {
+  background-color: #28a745;
+}
+
+.save-button:hover {
+  background-color: #218838;
+}
+
+/* Nút Hủy */
+.cancel-button {
+  background-color: #6c757d;
+}
+
+.cancel-button:hover {
+  background-color: #5a6268;
+}
 .user-management {
   background-color: #fff;
   border-radius: 10px;
