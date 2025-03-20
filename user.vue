@@ -1,23 +1,29 @@
 <template>
-<div class="container">
-  <aside class="sidebar">
-    <h2>Bảng điều khiển</h2>
-    <ul>
-      <li><router-link to="/admin/movies">Quản lý phim</router-link></li>
-      <li><router-link to="/admin/finance">Quản lí tài chính</router-link></li>
-      <li><router-link to="/admin/contentmanagement">Quản lí nội dung</router-link></li>
-      <li><router-link to="/admin/vipmanagenment">Quản lí tài khoản VIP và Thanh Toán</router-link></li>
-      <li><router-link to="/admin/account">Quản lí hệ thống và bảo mật (admin)</router-link></li>
-      <li><router-link to="/admin/user">Quản lí người dùng</router-link></li>
-      <li><router-link to="/admin/statisticsandreports">Thống kê và báo cáo</router-link></li>
-      <li><router-link to="/admin/transactions">Lịch sử giao dịch</router-link></li>
-      <li><router-link to="/admin/setting">Cài đặt chung</router-link></li>
-      <li><router-link to="/login">Đăng xuất</router-link></li>
-    </ul>
-  </aside>
+  <div class="container">
+    <aside class="sidebar">
+      <h2>Bảng điều khiển</h2>
+      <ul>
+        <li><router-link to="/admin/movies"><i class="fa fa-film"></i> Quản lý phim</router-link></li>
+        <li><router-link to="/admin/finance"><i class="fa fa-money"></i> Quản lí tài chính</router-link></li>
+        <li><router-link to="/admin/vipmanagenment"><i class="fa fa-user"></i> Quản lí tài khoản VIP và Thanh
+            Toán</router-link></li>
+        <li><router-link to="/admin/account"><i class="fa fa-lock"></i> Quản lí hệ thống và bảo mật
+            (admin)</router-link></li>
+        <li><router-link to="/admin/user"><i class="fa fa-users"></i> Quản lí người dùng</router-link></li>
+        <li><router-link to="/admin/transactions"><i class="fa fa-history"></i> Lịch sử giao dịch</router-link></li>
+        <li><router-link to="/admin/setting"><i class="fa fa-cog"></i> Cài đặt chung</router-link></li>
+        <li><router-link to="/login"><i class="fa fa-sign-out"></i> Đăng xuất</router-link></li>
+      </ul>
+    </aside>
+
     <!-- Quản lý người dùng -->
     <div class="user-management">
       <h1>Quản lý Người Dùng</h1>
+
+      <!-- Toggle chế độ sáng/tối -->
+      <button @click="toggleTheme" class="toggle-mode">
+        Chuyển đổi chế độ
+      </button>
 
       <!-- Form thêm người dùng -->
       <div class="add-user">
@@ -90,6 +96,13 @@ const newUser = ref({ username: "", email: "" });
 const editingUserId = ref(null);
 const editUser = ref({ username: "", email: "" });
 
+// Chế độ sáng/tối
+const isDarkMode = ref(false);
+const toggleTheme = () => {
+  isDarkMode.value = !isDarkMode.value;
+  document.body.classList.toggle('dark-mode', isDarkMode.value);
+};
+
 // Thêm người dùng
 const addUser = () => {
   if (newUser.value.username && newUser.value.email) {
@@ -134,9 +147,9 @@ const deleteUser = (id) => {
 };
 </script>
 
-
 <style scoped>
 @import "/src/assets/css/admin.css";
+
 .add-user {
   margin-bottom: 20px;
   background: #f9f9f9;
@@ -159,10 +172,11 @@ const deleteUser = (id) => {
   padding: 8px 16px;
   border-radius: 4px;
   cursor: pointer;
+  transition: transform 0.3s ease;
 }
 
 .add-button:hover {
-  background-color: #218838;
+  transform: scale(1.05);
 }
 
 /* Giao diện bảng danh sách */
@@ -181,56 +195,49 @@ const deleteUser = (id) => {
   background-color: #f4f4f4;
 }
 
-.edit-button, .delete-button, .save-button, .cancel-button {
+.edit-button,
+.delete-button,
+.save-button,
+.cancel-button {
   padding: 6px 12px;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   color: white;
   font-size: 14px;
+  transition: transform 0.3s ease;
 }
 
-/* Nút Sửa */
+.edit-button:hover,
+.delete-button:hover,
+.save-button:hover,
+.cancel-button:hover {
+  transform: scale(1.05);
+}
+
 .edit-button {
   background-color: #007bff;
 }
 
-.edit-button:hover {
-  background-color: #0056b3;
-}
-
-/* Nút Xóa */
 .delete-button {
   background-color: #dc3545;
 }
 
-.delete-button:hover {
-  background-color: #c82333;
-}
-
-/* Nút Lưu */
 .save-button {
   background-color: #28a745;
 }
 
-.save-button:hover {
-  background-color: #218838;
-}
-
-/* Nút Hủy */
 .cancel-button {
   background-color: #6c757d;
 }
 
-.cancel-button:hover {
-  background-color: #5a6268;
-}
 .user-management {
-  background-color: #fff;
+  background: linear-gradient(to right, #f9f9f9, #e6e6e6);
   border-radius: 10px;
   padding: 30px;
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
   animation: fadeIn 1s ease-in-out;
+  width: 120%;
 }
 
 h1 {
@@ -239,94 +246,22 @@ h1 {
   color: #34495e;
 }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 20px 0;
+body.dark-mode {
+  background-color: #121212;
+  color: #ffffff;
 }
 
-th,
-td {
-  padding: 12px;
-  text-align: left;
-  border: 1px solid #ddd;
-}
-
-th {
-  background-color: #f4f4f4;
-  font-weight: bold;
-}
-
-td.active {
-  color: #2ecc71;
-}
-
-td.blocked {
-  color: #e74c3c;
-}
-
-.details-button {
-  background-color: #3498db;
-  color: white;
-  border: none;
-  padding: 8px 12px;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.details-button:hover {
-  background-color: #2980b9;
-}
-
-.toggle-button {
+.toggle-mode {
+  margin-bottom: 20px;
+  padding: 8px 16px;
   background-color: #e67e22;
   color: white;
   border: none;
-  padding: 8px 12px;
   border-radius: 4px;
   cursor: pointer;
 }
 
-.toggle-button:hover {
+.toggle-mode:hover {
   background-color: #d35400;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.user-details {
-  margin-top: 20px;
-  padding: 20px;
-  background: #f9f9f9;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.user-details h2 {
-  color: #34495e;
-  margin-bottom: 15px;
-}
-
-.close-button {
-  background-color: #e74c3c;
-  color: white;
-  border: none;
-  padding: 10px 15px;
-  border-radius: 4px;
-  cursor: pointer;
-  margin-top: 20px;
-}
-
-.close-button:hover {
-  background-color: #c0392b;
 }
 </style>
