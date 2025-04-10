@@ -320,7 +320,7 @@
               </div>
               <div class="form-group">
                 <label>Avatar</label>
-                <input type="file" @change="onAvatarChange" accept="image/*" />
+                <input type="file" @change="onAvatarChangee" accept="image/*" />
                 <img v-if="avatarPreview" :src="avatarPreview" alt="Avatar Preview"
                   style="width: 150px; height: auto; margin-top: 10px;" />
               </div>
@@ -687,7 +687,7 @@ export default {
         this.posterPreview = null;
       }
     },
-    onAvatarChange(event) {
+    onAvatarChangee(event) {
       const file = event.target.files[0];
       if (file) {
         this.avatarPreview = URL.createObjectURL(file);
@@ -696,7 +696,7 @@ export default {
         this.avatarPreview = null;
       }
     },
-    onPosterChange(event) {
+    onPosterChangee(event) {
       console.log(event.target.files);
       const file = event.target.files[0];
       if (file) {
