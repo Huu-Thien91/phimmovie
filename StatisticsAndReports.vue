@@ -1,300 +1,639 @@
 <template>
-  <div>
-    <!-- Danh sách phim bộ -->
-    <table class="table-auto w-full text-left border">
-      <thead>
-        <tr class="bg-gray-200">
-          <th class="p-2">Poster</th>
-          <th class="p-2">Tiêu đề</th>
-          <th class="p-2">Thao tác</th>
-        </tr>
-      </thead>
-      <tbody>
-        <template v-for="(series, index) in paginatedSeries" :key="series.seriesId">
-          <tr class="border-t">
-            <td class="p-2 cursor-pointer" @click="toggleEpisodes(series.seriesId)">
-              <img :src="series.posterUrl" alt="poster" class="w-20 h-28 object-cover rounded" />
-            </td>
-            <td class="p-2 cursor-pointer" @click="toggleEpisodes(series.seriesId)">
-              {{ series.title }}
-            </td>
-            <td class="p-2">
-              <div class="flex space-x-2 justify-center">
-                <button class="bg-blue-500 text-white px-2 py-1 rounded" @click="editSeries(index)">Sửa</button>
-                <button class="bg-red-500 text-white px-2 py-1 rounded" @click="deleteSeries(index)">Xoá</button>
-                <button class="bg-green-500 text-white px-2 py-1 rounded" @click="addEpisode(series.seriesId)">Thêm tập</button>
-              </div>
-            </td>
-          </tr>
+  <div class="container">
+    <div class="movie-management">
+      <h1>🎥 Quản lý Phim</h1>
 
-          <!-- Hiển thị danh sách tập phim khi bấm vào series -->
-          <tr v-if="selectedSeriesId === series.seriesId">
-            <td colspan="3" class="p-4 bg-gray-50">
-              <div class="flex justify-between items-center mb-2">
-                <h3 class="font-semibold text-lg">Danh sách tập phim</h3>
-              </div>
-              <!-- Hiển thị 5 tập phim đầu tiên -->
-              <div v-for="(ep, epIndex) in episodes.slice(0, 5)" :key="ep.episodeId">
-                <div class="flex justify-between items-center p-2 border-t">
-                  <span>{{ ep.title }}</span>
-                  <div class="flex space-x-2">
-                    <button class="bg-yellow-400 text-white px-2 py-1 rounded" @click="editEpisode(ep)">Sửa</button>
-                    <button class="bg-red-400 text-white px-2 py-1 rounded" @click="deleteEpisode(ep.episodeId)">Xoá</button>
+      <!-- Tabs -->
+      <div class="tabs">
+        <button @click="selectTab('movies')" :class="{ active: currentTab === 'movies' }">Phim Lẻ</button>
+        <button @click="selectTab('series')" :class="{ active: currentTab === 'series' }">Phim Bộ</button>
+      </div>
+
+      <!-- Nội dung tab Phim Bộ -->
+      <div v-if="currentTab === 'series'" class="tab-content">
+        <h2>Quản lý Phim Bộ</h2>
+        <button @click="showSeriesMovieForm = true" class="add-button">Thêm Phim Bộ</button>
+
+        <div class="search-bar">
+          <input v-model="searchQuery" type="text" placeholder="Tìm kiếm phim bộ" @input="searchSeries" />
+        </div>
+
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Avatar</th>
+              <th>Poster</th>
+              <th>Tên phim</th>
+              <th>Phần</th>
+              <th>Diễn viên</th>
+              <th>Đạo diễn</th>
+              <th>Thể loại</th>
+              <th>Quốc gia</th>
+              <th>Năm phát hành</th>
+              <th>Mô tả</th>
+              <th>Phim nóng</th>
+              <th>Rating</th>
+              <th>Trạng thái</th>
+              <th>Hành động</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-if="paginatedSeries.length === 0 && !loading">
+              <td colspan="15">Không có phim bộ nào phù hợp!</td>
+            </tr>
+
+            <template v-for="(series, index) in paginatedSeries" :key="series.seriesId">
+              <tr>
+                <td>{{ series.seriesId }}</td>
+                <td><img :src="series.avatarUrl" alt="Avatar" width="100" /></td>
+                <td><img :src="series.posterUrl" alt="Poster" width="100" /></td>
+                <td>{{ series.title }}</td>
+                <td>{{ series.season }}</td>
+                <td>
+                  <div v-for="actor in series.actors" :key="actor.actorId">{{ actor.nameAct }}</div>
+                </td>
+                <td>
+                  <div v-for="director in series.directors" :key="director.directorID">{{ director.nameDir }}</div>
+                </td>
+                <td>
+                  <div v-for="category in series.categories" :key="category.categoryId">{{ category.categoryName }}</div>
+                </td>
+                <td>{{ series.nation }}</td>
+                <td>{{ series.yearReleased }}</td>
+                <td>{{ series.description }}</td>
+                <td>{{ series.isHot ? 'Có' : 'Không' }}</td>
+                <td>{{ series.rating }}</td>
+                <td>{{ series.status === 1 ? 'Đang hoạt động' : 'Không hoạt động' }}</td>
+                <td>
+                  <button @click="toggleEpisodes(series)">
+                    {{ series.showEpisodes ? 'Ẩn' : 'Xem' }}
+                  </button>
+                  <button @click="editSeries(index)" class="edit-button">Sửa</button>
+                  <button @click="deleteSeries(index)" class="delete-button">Xóa</button>
+                </td>
+              </tr>
+
+              <!-- Danh sách tập phim -->
+              <tr v-if="series.showEpisodes">
+                <td colspan="15">
+                  <div class="episodes-list">
+                    <h4>Danh sách tập phim</h4>
+                    <button @click="openAddEpisodeModal(series.seriesId)" class="add-button">➕ Thêm Tập Phim</button>
+                    <table class="data-table">
+                      <thead>
+                        <tr>
+                          <th>Tập</th>
+                          <th>Tiêu đề</th>
+                          <th>Link</th>
+                          <th>Hành động</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr v-for="episode in series.episodes" :key="episode.episodeId">
+                          <td>Tập {{ episode.episodeNumber }}</td>
+                          <td>{{ episode.title }}</td>
+                          <td><a :href="episode.linkFilmUrl" target="_blank">Xem</a></td>
+                          <td>
+                            <button @click="openEditEpisodeModal(episode)" class="edit-button">Sửa</button>
+                            <button @click="deleteEpisode(episode.episodeId, series.seriesId)" class="delete-button">Xóa</button>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
                   </div>
-                </div>
-              </div>
+                </td>
+              </tr>
+            </template>
+          </tbody>
+        </table>
+      </div>
 
-              <!-- Tải thêm tập phim khi cuộn -->
-              <div v-if="loadingEpisodes" class="text-center p-4">Đang tải...</div>
-              <div v-if="allEpisodesLoaded" class="text-center p-4 text-gray-500">Tất cả tập phim đã được tải</div>
-
-              <!-- Nút cuộn tải thêm -->
-              <button v-if="!allEpisodesLoaded" @click="loadMoreEpisodes" class="bg-blue-500 text-white px-4 py-2 rounded-full mt-4 block mx-auto">
-                Tải thêm tập
-              </button>
-            </td>
-          </tr>
-        </template>
-      </tbody>
-    </table>
-
-    <!-- Phân trang phim bộ -->
-    <div class="flex justify-center mt-4">
-      <button class="px-3 py-1 mx-1 bg-gray-300 rounded" @click="changePage(page - 1)" :disabled="page <= 1">&lt;</button>
-      <span class="px-3 py-1">Trang {{ page }} / {{ totalSeriesPages }}</span>
-      <button class="px-3 py-1 mx-1 bg-gray-300 rounded" @click="changePage(page + 1)" :disabled="page >= totalSeriesPages">&gt;</button>
+      <!-- Phân trang -->
+      <div class="pagination" v-if="currentTab === 'series'">
+        <button @click="changePage(page - 1)" :disabled="page === 1">Trước</button>
+        <span>Trang {{ page }} / {{ totalSeriesPages }}</span>
+        <button @click="changePage(page + 1)" :disabled="page === totalSeriesPages">Sau</button>
+      </div>
     </div>
   </div>
+
+  <!-- Modal Thêm Tập Phim -->
+<div v-if="showAddEpisodeModal" class="modal">
+  <div class="modal-content">
+    <h3>Thêm Tập Phim</h3>
+    <label for="episodeNumber">Số tập:</label>
+    <input v-model="newEpisode.episodeNumber" type="number" min="1" id="episodeNumber" required />
+    
+    <label for="title">Tiêu đề:</label>
+    <input v-model="newEpisode.title" type="text" id="title" required />
+
+    <label for="linkFilmUrl">Link phim:</label>
+    <input v-model="newEpisode.linkFilmUrl" type="url" id="linkFilmUrl" required />
+
+    <!-- Container chứa nút Thêm và Hủy -->
+    <div class="buttons-container">
+      <button @click="addEpisode">Thêm Tập Phim</button>
+      <button @click="closeAddEpisodeModal">Hủy</button>
+    </div>
+  </div>
+</div>
 </template>
 
 <script>
-import axios from 'axios';
+import axios from "axios";
+import { ref } from 'vue';
+import Multiselect from "vue-multiselect";
+import "vue-multiselect/dist/vue-multiselect.min.css";
+const currentTab = ref("movies"); // Tab mặc định là "Phim Lẻ"
+const paginatedSeries = ref([]); // Dữ liệu phim bộ
+const selectTab = (tab) => {
+  currentTab.value = tab; // Chuyển đổi tab
+};
 
 export default {
+  components: {
+    Multiselect,
+  },
   data() {
     return {
-      seriesList: [],
-      page: 1,
-      pageSize: 5, // Hiển thị 5 bộ phim mỗi trang
-      totalSeriesPages: 1,
+      showAddEpisodeModal: false,
       selectedSeriesId: null,
-      episodes: [],
+      showSeriesMovieForm: false,
+      showUpdateSeriesMovieForm: false,
+      actorOptions: [], // Danh sách diễn viên từ API
+      categorieOptions: [],
+      directorOptions: '',
+      searchQuery: "",
+      allMovies: [],
+      allSeries: [],
+      series: [],
       loading: false,
-      loadingEpisodes: false,
-      allEpisodesLoaded: false,
-      episodePage: 1,
-      episodePageSize: 5, // Mỗi lần tải 5 tập phim
+      error: null,
+      avatarPreview: null,
+      posterPreview: null,
+      currentTab: "movies",
+      seriesList: [],
+      page: 1, // Trang hiện tại
+      itemsPerPage: 5, // 5 phim trên mỗi trang
     };
   },
   computed: {
+    // Tổng số trang phim
+    totalSeriesPages() {
+      return Math.ceil(this.seriesList.length / this.itemsPerPage);
+    },
     paginatedSeries() {
-      const filtered = this.seriesList;
-      this.totalSeriesPages = Math.ceil(filtered.length / this.pageSize);
-      return filtered.slice((this.page - 1) * this.pageSize, this.page * this.pageSize);
+      const start = (this.page - 1) * this.itemsPerPage;
+      const end = start + this.itemsPerPage;
+      return this.seriesList.slice(start, end);
+    },
+    filteredSeries() {
+      const query = this.searchQuery.trim().toLowerCase();
+      return this.seriesList.filter(
+        (series) =>
+          series.title.toLowerCase().includes(query) ||
+          series.description.toLowerCase().includes(query)
+      );
     }
   },
-  methods: {
-    async fetchSeries() {
-      try {
-        this.loading = true;
-        const response = await axios.get(`http://localhost:5148/api/AdminSeries?sortBy=Title&sortDirection=asc&page=${this.page}&pageSize=${this.pageSize}`);
-        this.seriesList = response.data;
-        this.loading = false;
-      } catch (error) {
-        console.error('Lỗi khi tải danh sách phim bộ:', error);
-        this.loading = false;
-      }
-    },
-    changePage(newPage) {
-      if (newPage >= 1 && newPage <= this.totalSeriesPages) {
-        this.page = newPage;
-        this.fetchSeries();
-      }
-    },
-    toggleEpisodes(seriesId) {
-      if (this.selectedSeriesId === seriesId) {
-        this.selectedSeriesId = null;
-        this.episodes = [];
-        this.allEpisodesLoaded = false;
-      } else {
-        this.selectedSeriesId = seriesId;
-        this.fetchEpisodes(seriesId);
-      }
-    },
-    async fetchEpisodes(seriesId) {
-      try {
-        this.loadingEpisodes = true;
-        const res = await axios.get(`/api/AdminEpisode/BySeries/${seriesId}?pageNumber=${this.episodePage}&pageSize=${this.episodePageSize}`);
-        if (res.data.length < this.episodePageSize) {
-          this.allEpisodesLoaded = true;
-        }
-        this.episodes = [...this.episodes, ...res.data];
-        this.loadingEpisodes = false;
-      } catch (err) {
-        console.error('Lỗi khi tải tập phim:', err);
-        this.loadingEpisodes = false;
-      }
-    },
-    loadMoreEpisodes() {
-      if (!this.allEpisodesLoaded && !this.loadingEpisodes) {
-        this.episodePage++;
-        this.fetchEpisodes(this.selectedSeriesId);
-      }
-    },
-    editSeries(index) {
-      // Logic để mở form sửa phim bộ (nếu cần làm thêm modal)
-    },
-    async deleteSeries(index) {
-      const id = this.seriesList[index].seriesId;
-      try {
-        await axios.delete(`/api/AdminSeries/${id}`);
-        this.fetchSeries();
-      } catch (err) {
-        console.error('Lỗi xoá phim bộ:', err);
-      }
-    },
-    editEpisode(ep) {
-      // Logic để sửa tập phim
-    },
-    async deleteEpisode(episodeId) {
-      try {
-        await axios.delete(`/api/episodes/${episodeId}`);
-        this.fetchEpisodes(this.selectedSeriesId);
-      } catch (err) {
-        console.error('Lỗi xoá tập:', err);
-      }
-    },
-    addEpisode(seriesId) {
-      // Logic để mở modal thêm tập phim
-    }
-  },
-  created() {
-    this.fetchSeries();
-  },
-  watch: {
-    selectedSeriesId(newVal) {
-      if (newVal) {
-        this.episodes = [];
-        this.episodePage = 1;
-        this.allEpisodesLoaded = false;
-        this.fetchEpisodes(newVal);
-      }
+  methods:{
+    async toggleEpisodes(series) {
+  if (!series.showEpisodes) {
+    try {
+      // Gọi API để lấy danh sách tập phim
+      const response = await axios.get(
+        `http://localhost:5148/api/AdminEpisode/BySeries/${series.seriesId}?pageNumber=1&pageSize=100`
+      );
+      console.log(response.data); // Kiểm tra dữ liệu API trả về
+
+      // Cập nhật tập phim vào series (Cập nhật trực tiếp vào series)
+      series.episodes = response.data; // Cập nhật trực tiếp mảng hoặc đối tượng
+    } catch (error) {
+      console.error("Lỗi khi tải danh sách tập phim:", error);
+      series.episodes = []; // Gán mảng rỗng khi có lỗi
     }
   }
+
+  // Đảo trạng thái hiển thị
+  series.showEpisodes = !series.showEpisodes; // Đảo ngược giá trị của showEpisodes
+    },
+
+    openAddEpisodeModal(seriesId) {
+      this.selectedSeriesId = seriesId;
+      this.newEpisode = {
+        episodeNumber: 1,
+        title: '',
+        linkFilmUrl: ''
+      };
+      this.showAddEpisodeModal = true;
+    },
+    async addEpisode() {
+      try {
+        const formData = new FormData();
+        formData.append("SeriesId", this.selectedSeriesId);
+        formData.append("EpisodeNumber", this.newEpisode.episodeNumber);
+        formData.append("Title", this.newEpisode.title);
+        formData.append("LinkFilmUrl", this.newEpisode.linkFilmUrl);
+
+        const response = await axios.post(
+          "http://localhost:5148/api/AdminEpisode/AddEpisode",
+          formData,
+          { headers: { "Content-Type": "multipart/form-data" } }
+        );
+
+        const addedEpisode = response.data;
+        const series = this.seriesList.find(s => s.seriesId === this.selectedSeriesId);
+        if (series) {
+          series.episodes = [...series.episodes, addedEpisode];
+        }
+
+        this.showAddEpisodeModal = false;
+      } catch (error) {
+        console.error("Thêm tập phim thất bại:", error);
+        alert("Thêm tập phim thất bại!");
+      }
+    },
+
+    closeAddEpisodeModal() {
+      this.showAddEpisodeModal = false;
+      // Làm sạch các trường nhập liệu khi đóng modal (nếu cần)
+      this.newEpisode = {
+        episodeNumber: '',
+        title: '',
+        linkFilmUrl: ''
+      };
+    },
+    
+  openEditEpisodeModal(episode) {
+    // Mở modal sửa tập phim
+    console.log("Sửa tập phim:", episode);
+    // Gọi modal hoặc component sửa
+  },
+
+  deleteEpisode(episodeId, seriesId) {
+    if (confirm("Bạn có chắc muốn xóa tập phim này không?")) {
+      axios.delete(`/api/episodes/${episodeId}`)
+        .then(() => {
+          const series = this.paginatedSeries.find(s => s.seriesId === seriesId);
+          if (series) {
+            series.episodes = series.episodes.filter(e => e.episodeId !== episodeId);
+          }
+        })
+        .catch(error => {
+          console.error("Lỗi khi xóa tập phim:", error);
+        });
+    }
+  },
+
+    async fetchActorOptions() {
+      // Gọi API để lấy danh sách diễn viên
+      try {
+        const response = await axios.get("http://localhost:5148/api/AdminActor", {
+          params: {
+            search: "",
+            sortBy: "ActorId",
+            sortDirection: "asc",
+            page: 1,
+            pageSize: 50, // Hiển thị tất cả diễn viên trong một lần tải
+          },
+        });
+
+        this.actorOptions = response.data.map((actor) => ({
+          id: actor.actorId,
+          name: actor.nameAct,
+        }));
+      } catch (error) {
+        console.error("Lỗi khi tải danh sách diễn viên:", error);
+      }
+    },
+    async fetchcategorieOptions() {
+      // Gọi API để lấy danh sách thể loại
+      try {
+        const response = await axios.get("http://localhost:5148/api/AdminCategories", {
+          params: {
+            search: "",
+            sortBy: "CategoryId",
+            sortDirection: "asc",
+            page: 1,
+            pageSize: 50, // Hiển thị tất cả diễn viên trong một lần tải
+          },
+        });
+
+        this.categorieOptions = response.data.map((categorie) => ({
+          id: categorie.categoryId,
+          name: categorie.categoryName,
+        }));
+      } catch (error) {
+        console.error("Lỗi khi tải danh sách diễn viên:", error);
+      }
+    },
+    async fetchdirectorOptions() {
+      // Gọi API để lấy danh sách đạo diễn
+      try {
+        const response = await axios.get("http://localhost:5148/api/AdminDirectors/List-Directors", {
+          params: {
+            search: "",
+            sortBy: "DirectorId",
+            sortDirection: "asc",
+            page: 1,
+            pageSize: 50, // Hiển thị tất cả diễn viên trong một lần tải
+          },
+        });
+
+        this.directorOptions = response.data.map((director) => ({
+          id: director.directorID,
+          name: director.nameDir,
+        }));
+      } catch (error) {
+        console.error("Lỗi khi tải danh sách diễn viên:", error);
+      }
+    },
+    watch: {
+  showSingleMovieForm(newVal) {
+    if (newVal) {
+      console.log(1);
+      this.fetchdirectorOptions();
+    }
+  },
+  showSeriesMovieForm(newVal) {
+    if (newVal) {
+      console.log("showSeriesMovieForm triggered");
+      this.fetchActorOptions();
+      this.fetchcategorieOptions();
+      this.fetchdirectorOptions();
+    }
+  },
+  showUpdateSeriesMovieForm(newVal) {
+    if (newVal) {
+      this.fetchActorOptions();
+    }
+  }
+},
+    // series
+    onAvatarChange(event) {
+      const file = event.target.files[0];
+      if (file) {
+        this.avatarPreview = URL.createObjectURL(file);
+        this.seriesMovieForm.avatarFile = event.target.files[0];
+      } else {
+        this.avatarPreview = null;
+      }
+    },
+    onPosterChange(event) {
+      console.log(event.target.files);
+      const file = event.target.files[0];
+      if (file) {
+        this.posterPreview = URL.createObjectURL(file);
+        this.seriesMovieForm.posterFile = event.target.files[0];
+      } else {
+        this.posterPreview = null;
+      }
+    },
+    onAvatarChangee(event) {
+      const file = event.target.files[0];
+      if (file) {
+        this.avatarPreview = URL.createObjectURL(file);
+        this.seriesUpdateMovieForm.avatarFile = event.target.files[0];
+      } else {
+        this.avatarPreview = null;
+      }
+    },
+    onPosterChangee(event) {
+      console.log(event.target.files);
+      const file = event.target.files[0];
+      if (file) {
+        this.posterPreview = URL.createObjectURL(file);
+        this.seriesUpdateMovieForm.posterFile = event.target.files[0];
+      } else {
+        this.posterPreview = null;
+      }
+    },
+    async fetchMovies() {
+      this.loading = true;
+      this.error = null;
+      try {
+        const response = await axios.get("http://localhost:5148/api/AdminMovies", {
+          params: {
+            sortBy: "Title",
+            search: this.searchQuery.trim()
+          },
+        });
+        this.movieList = (Array.isArray(response.data) ? response.data : []).sort(
+          (a, b) => a.movieId - b.movieId
+        );
+
+
+        // Store all movies fetched from API
+        this.allMovies = Array.isArray(response.data) ? response.data : [];
+
+        // Calculate total pages based on items per page
+        this.totalMoviePages = Math.ceil(this.movieList.length / this.itemsPerPage);
+
+        // Update paginated data for the current page
+        this.updateMoviePagination();
+      } catch (error) {
+        console.error("Lỗi khi tải danh sách phim:", error.response?.data?.message || error.message);
+        this.error = "Không thể tải danh sách phim!";
+      } finally {
+        this.loading = false;
+      }
+    },
+    updateMoviePagination() {
+      const startIndex = (this.page - 1) * this.itemsPerPage;
+      const endIndex = startIndex + this.itemsPerPage;
+      this.paginatedMovies = this.movieList.slice(startIndex, endIndex);
+    },
+
+    async searchMovies() {
+      this.page = 1; // Đặt lại về trang đầu tiên
+      await this.fetchMovies(); // Gọi lại API với từ khóa tìm kiếm
+    },  
+    async fetchSeries() {
+  this.loading = true;
+  this.error = null;
+  try {
+    const response = await axios.get("http://localhost:5148/api/AdminSeries", {
+      params: {
+        sortBy: "Title",
+        search: this.searchQuery.trim(),
+      },
+    });
+
+    // Khởi tạo sẵn showEpisodes và episodes cho từng series
+    this.seriesList = (Array.isArray(response.data) ? response.data : [])
+      .map(s => ({
+        ...s,
+        showEpisodes: false,
+        episodes: []
+      }))
+      .sort((a, b) => a.seriesId - b.seriesId);
+
+    // Store all series fetched from API
+    this.allSeries = Array.isArray(response.data) ? response.data : [];
+
+    // Tính toán tổng số trang
+    this.totalSeriesPages = Math.ceil(this.allSeries.length / this.itemsPerPage);
+
+    // Cập nhật dữ liệu phân trang cho trang hiện tại
+    this.updateSeriesPagination();
+  } catch (error) {
+    console.error(
+      "Lỗi khi tải danh sách phim bộ:",
+      error.response?.data?.message || error.message
+    );
+    this.error = "Không thể tải danh sách phim bộ!";
+  } finally {
+    this.loading = false;
+  }
+},
+
+updateSeriesPagination() {
+      const startIndex = (this.page - 1) * this.itemsPerPage;
+      const endIndex = startIndex + this.itemsPerPage;
+      this.paginatedSeries = this.seriesList.slice(startIndex, endIndex);
+    },
+    // Thay đổi trang
+    changePage(newPage) {
+      if (newPage >= 1 && newPage <= this.totalMoviePages) {
+        this.page = newPage; // Cập nhật trang hiện tại
+      }
+    },
+
+    selectTab(tab) {
+      this.currentTab = tab;
+      this.searchQuery = "";
+      this.page = 1;
+      if (tab === "movies") {
+        this.fetchMovies();
+      } else if (tab === "series") {
+        this.fetchSeries();
+      }
+    },
+
+  },
+  mounted() {
+    this.fetchMovies(); // Lấy danh sách phim
+    this.fetchSeries();
+    this.fetchActorOptions();
+    this.fetchcategorieOptions();
+    this.fetchdirectorOptions();
+  },
 };
 </script>
-
 <style scoped>
-/* Bảng phim bộ */
-.table-auto {
+@import "/src/assets/css/admin.css";
+/* Modal Container */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
   width: 100%;
-  border-collapse: collapse;
-}
-.table-auto th,
-.table-auto td {
-  padding: 12px;
-  border: 1px solid #ddd;
-}
-
-.bg-gray-200 {
-  background-color: #f7f7f7;
-}
-.bg-gray-50 {
-  background-color: #f9fafb;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Nền tối mờ */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  transition: opacity 0.3s ease-in-out;
 }
 
-.cursor-pointer {
-  cursor: pointer;
+/* Modal Content */
+.modal-content {
+  background-color: #fff;
+  padding: 40px;
+  border-radius: 10px;
+  width: 500px; /* Tăng chiều rộng */
+  max-width: 100%;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease-in-out;
 }
 
-.text-left {
-  text-align: left;
-}
-
-.text-center {
+/* Tiêu đề Modal */
+.modal-content h3 {
+  font-size: 26px;
+  margin-bottom: 30px;
   text-align: center;
+  color: #333;
 }
 
-.p-2 {
-  padding: 0.5rem;
+/* Label cho các trường nhập liệu */
+.modal-content label {
+  display: block;
+  font-size: 16px;
+  margin-bottom: 10px;
+  color: #555;
+  font-weight: 600;
 }
 
-.p-4 {
-  padding: 1rem;
+/* Các trường nhập liệu */
+.modal-content input {
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  margin-bottom: 25px;
+  outline: none;
+  transition: border-color 0.3s ease;
 }
 
-.mt-4 {
-  margin-top: 1rem;
+/* Hiệu ứng khi focus vào input */
+.modal-content input:focus {
+  border-color: #4e9ed6;
 }
 
-.mr-4 {
-  margin-right: 1rem;
+/* Phần chứa các nút Thêm và Hủy */
+.modal-content .buttons-container {
+  display: flex;
+  justify-content: space-between; /* Đảm bảo nút cách nhau đều */
+  gap: 10px; /* Khoảng cách giữa các nút */
 }
 
-/* Button styles */
-.bg-blue-500 {
-  background-color: #3b82f6;
-}
-.bg-yellow-400 {
-  background-color: #facc15;
-}
-.bg-red-500 {
-  background-color: #ef4444;
-}
-.bg-green-500 {
-  background-color: #10b981;
+/* Nút Thêm Tập Phim và Hủy */
+.modal-content button {
+  padding: 15px 25px;
+  font-size: 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.3s ease;
+  width: 48%; /* Mỗi nút chiếm 48% chiều rộng của modal */
 }
 
-.text-white {
+/* Nút Thêm Tập Phim */
+.modal-content button:first-of-type {
+  background-color: #4e9ed6;
   color: white;
 }
 
-.rounded {
-  border-radius: 0.375rem;
+.modal-content button:first-of-type:hover {
+  background-color: #357ab7;
 }
 
-.px-2 {
-  padding-left: 0.5rem;
-  padding-right: 0.5rem;
+/* Nút Hủy */
+.modal-content button:last-of-type {
+  background-color: #ccc;
+  color: #333;
 }
 
-.py-1 {
-  padding-top: 0.25rem;
-  padding-bottom: 0.25rem;
+.modal-content button:last-of-type:hover {
+  background-color: #bbb;
 }
 
-.px-4 {
-  padding-left: 1rem;
-  padding-right: 1rem;
+/* Điều chỉnh cho màn hình nhỏ */
+@media (max-width: 480px) {
+  .modal-content {
+    width: 90%;
+  }
+
+  .modal-content button {
+    width: 100%;
+    margin-top: 10px;
+  }
 }
 
-.py-2 {
-  padding-top: 0.5rem;
-  padding-bottom: 0.5rem;
-}
 
-.rounded-full {
-  border-radius: 9999px;
-}
-
-.mt-4 {
-  margin-top: 1rem;
-}
-
-.block {
-  display: block;
-}
-
-.mx-auto {
-  margin-left: auto;
-  margin-right: auto;
-}
-
-/* Hover Effects */
-button:hover {
-  opacity: 0.9;
-}
-/* ok */
 /* Form Overlay */
 .form-overlay {
   position: fixed;
