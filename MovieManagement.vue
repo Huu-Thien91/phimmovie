@@ -262,16 +262,16 @@
                 <input type="text" v-model="singleMovieForm.nation" required />
               </div>
               <div class="form-group">
-                <label>Avatar</label>
-                <input type="file" @change="onAvatarChange" accept="image/*" />
-                <img v-if="avatarPreview" :src="avatarPreview" alt="Avatar Preview"
+                <label>Avatar (URL)</label>
+                <input type="text" v-model="avatarUrl" placeholder="Nhập URL của avatar" />
+                <img v-if="avatarUrl" :src="avatarUrl" alt="Avatar Preview"
                   style="width: 150px; height: auto; margin-top: 10px;" />
               </div>
 
               <div class="form-group">
-                <label>Poster</label>
-                <input type="file" @change="onPosterChange" accept="image/*" />
-                <img v-if="posterPreview" :src="posterPreview" alt="Poster Preview"
+                <label>Poster (URL)</label>
+                <input type="text" v-model="posterUrl" placeholder="Nhập URL của poster" />
+                <img v-if="posterUrl" :src="posterUrl" alt="Poster Preview"
                   style="width: 150px; height: auto; margin-top: 10px;" />
               </div>
               <div class="form-group">
@@ -1266,7 +1266,7 @@ export default {
 
         // Loại bỏ phim đã xóa khỏi danh sách hiển thị
         this.allSeries.splice(globalIndex, 1); // Xóa khỏi danh sách gốc
-        this.updatePagination(); // Cập nhật lại danh sách phân trang
+        this.updateSeriesPagination(); // Cập nhật lại danh sách phân trang
       } catch (error) {
         // Xử lý lỗi chi tiết
         console.error("Lỗi khi xóa phim:", error.response?.data || error.message);
@@ -1485,7 +1485,7 @@ export default {
         alert("Thêm phim bộ thành công!");
         this.fetchSeries(); // Làm mới danh sách phim
         this.seriesList.unshift(response.data); // Cập nhật danh sách phim
-        this.updatePagination(); // Cập nhật phân trang
+        this.updateSeriesPagination(); // Cập nhật phân trang
         this.showSeriesMovieForm = false; // Ẩn biểu mẫu khi thêm thành công
       } catch (error) {
         console.error(
