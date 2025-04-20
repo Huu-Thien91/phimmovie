@@ -206,185 +206,181 @@
     </div>
     <!-- Form Thêm Phim lẻ -->
     <div v-if="showSingleMovieForm" class="form-overlay">
-      <div class="form-container">
-        <h2>Thêm Phim Mới</h2>
-        <form @submit.prevent="AddMovie" class="movie-form">
-          <div class="form-columns">
-            <div class="form-column left-column">
-              <div class="form-group">
-                <label>Tên phim</label>
-                <input type="text" v-model="singleMovieForm.title" required />
-              </div>
-              <div class="form-group">
-                <label>Diễn viên</label>
-                <multiselect v-model="singleMovieForm.actors" :options="actorOptions" label="name" track-by="id"
-                  placeholder="Chọn diễn viên" :multiple="true"></multiselect>
-              </div>
-              <div class="form-group">
-                <label>Đạo diễn</label>
-                <select v-model="singleMovieForm.directorId" required>
-                  <option v-for="director in directorOptions" :value="director.id" :key="director.id">
-                    {{ director.name }}
-                  </option>
-                </select>
+        <div class="form-container">
+          <h2>Thêm Phim Mới</h2>
+          <form @submit.prevent="AddMovie" class="movie-form">
+            <div class="form-columns">
+              <div class="form-column left-column">
+                <div class="form-group">
+                  <label>Tên phim</label>
+                  <input type="text" v-model="singleMovieForm.title" required />
+                </div>
+                <div class="form-group">
+                  <label>Diễn viên</label>
+                  <multiselect v-model="singleMovieForm.actors" :options="actorOptions" label="name" track-by="id"
+                    placeholder="Chọn diễn viên" :multiple="true"></multiselect>
+                </div>
+                <div class="form-group">
+                  <label>Đạo diễn</label>
+                  <select v-model="singleMovieForm.directorId" required>
+                    <option v-for="director in directorOptions" :value="director.id" :key="director.id">
+                      {{ director.name }}
+                    </option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label>Năm Phát Hành</label>
+                  <input type="text" v-model="singleMovieForm.yearReleased" required />
+
+                </div>
+                <div class="form-group">
+                  <label>Mô tả</label>
+                  <input type="text" v-model="singleMovieForm.description" required />
+                </div>
+                <div class="form-group">
+                  <label>Hot</label>
+                  <select v-model="singleMovieForm.isHot" required>
+                    <option value="true">True</option>
+                    <option value="false">False</option>
+                  </select>
+                </div>
               </div>
 
-              <div class="form-group">
-                <label>Năm Phát Hành</label>
-                <input type="text" v-model="singleMovieForm.yearReleased" required />
-
-              </div>
-              <div class="form-group">
-                <label>Mô tả</label>
-                <input type="text" v-model="singleMovieForm.description" required />
-              </div>
-              <div class="form-group">
-                <label>Hot</label>
-                <select v-model="singleMovieForm.isHot" required>
-                  <option value="true">True</option>
-                  <option value="false">False</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="form-column right-column">
-              <div class="form-group">
-                <label>Rating</label>
-                <input v-model="singleMovieForm.rating" type="number" step="0.1" min="0.1" max="10" required />
-              </div>
-              <div class="form-group">
-                <label>Thể Loại</label>
-                <multiselect v-model="singleMovieForm.categories" :options="categorieOptions" label="name" track-by="id"
-                  placeholder="Chọn thể loại" :multiple="true"></multiselect>
-              </div>
-              <div class="form-group">
-                <label>Quốc gia</label>
-                <input type="text" v-model="singleMovieForm.nation" required />
-              </div>
-              <div class="form-group">
-                <label>Avatar (URL)</label>
-                <input type="text" v-model="avatarUrl" placeholder="Nhập URL của avatar" />
-                <img v-if="avatarUrl" :src="avatarUrl" alt="Avatar Preview"
-                  style="width: 150px; height: auto; margin-top: 10px;" />
-              </div>
-
-              <div class="form-group">
-                <label>Poster (URL)</label>
-                <input type="text" v-model="posterUrl" placeholder="Nhập URL của poster" />
-                <img v-if="posterUrl" :src="posterUrl" alt="Poster Preview"
-                  style="width: 150px; height: auto; margin-top: 10px;" />
-              </div>
-              <div class="form-group">
-                <label>Link Film</label>
-                <input type="url" v-model="singleMovieForm.linkFilmUrl" required placeholder="URL của phim" />
-              </div>
-            </div>
-          </div>
-
-          <div class="button-group">
-            <button type="submit" class="submit-button">
-              {{ singleMovieForm.update ? 'Cập nhật' : 'Thêm Phim' }}
-            </button>
-            <button type="button" class="cancel-button" @click="cancelSingleMovieForm">Hủy</button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <!-- Form sửa phim lẻ -->
-    <div v-if="showUpdateSingleMovieForm" class="form-overlay">
-      <div class="form-container">
-        <h2>Chỉnh sửa Phim</h2>
-        <form @submit.prevent="UpdateMovie" class="movie-form">
-          <div class="form-columns">
-            <div class="form-column left-column">
-              <div class="form-group">
-                <label>ID</label>
-                <input type="text" v-model="singleUpdateMovieForm.movieId" required />
-              </div>
-              <div class="form-group">
-                <label>Tên phim</label>
-                <input type="text" v-model="singleUpdateMovieForm.title" required />
-              </div>
-              <div class="form-group">
-                <label>Diễn viên</label>
-                <multiselect v-model="singleUpdateMovieForm.actors" :options="actorOptions" label="name" track-by="id"
-                  placeholder="Chọn diễn viên" :multiple="true"></multiselect>
-              </div>
-              <div class="form-group">
-                <label>Đạo diễn</label>
-                <select v-model="singleUpdateMovieForm.directorId" required>
-                  <option v-for="director in directorOptions" :value="director.id" :key="director.id">
-                    {{ director.name }}
-                  </option>
-                </select>
-              </div>
-
-              <div class="form-group">
-                <label>Năm Phát Hành</label>
-                <input type="text" v-model="singleUpdateMovieForm.yearReleased" required />
-              </div>
-              <div class="form-group">
-                <label>Trạng thái</label>
-                <select v-model="singleUpdateMovieForm.status" required>
-                  <option value="Công chiếu">Công chiếu</option>
-                  <option value="Sắp ra mắt">Sắp ra mắt</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label>Mô tả</label>
-                <input type="text" v-model="singleUpdateMovieForm.description" required />
-              </div>
-              <div class="form-group">
-                <label>Hot</label>
-                <select v-model="singleUpdateMovieForm.isHot" required>
-                  <option value="true">True</option>
-                  <option value="false">False</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="form-column right-column">
-              <div class="form-group">
-                <label>Rating</label>
-                <input v-model="singleUpdateMovieForm.rating" type="number" step="0.1" min="0.1" max="10" required />
-              </div>
-              <div class="form-group">
-                <label>Thể Loại</label>
-                <multiselect v-model="singleUpdateMovieForm.categories" :options="categorieOptions" label="name"
-                  track-by="id" placeholder="Chọn thể loại" :multiple="true"></multiselect>
-              </div>
-              <div class="form-group">
-                <label>Quốc gia</label>
-                <input type="text" v-model="singleUpdateMovieForm.nation" required />
-              </div>
-              <div class="form-group">
+              <div class="form-column right-column">
+                <div class="form-group">
+                  <label>Rating</label>
+                  <input v-model="singleMovieForm.rating" type="number" step="0.1" min="0.1" max="10" required />
+                </div>
+                <div class="form-group">
+                  <label>Thể Loại</label>
+                  <multiselect v-model="singleMovieForm.categories" :options="categorieOptions" label="name" track-by="id"
+                    placeholder="Chọn thể loại" :multiple="true"></multiselect>
+                </div>
+                <div class="form-group">
+                  <label>Quốc gia</label>
+                  <input type="text" v-model="singleMovieForm.nation" required />
+                </div>
+                <div class="form-group">
                 <label>Avatar</label>
-                <input type="file" @change="onAvatarChangee" accept="image/*" />
+                <input type="file" @change="onAvatarChangen" accept="image/*" />
                 <img v-if="avatarPreview" :src="avatarPreview" alt="Avatar Preview"
                   style="width: 150px; height: auto; margin-top: 10px;" />
               </div>
 
-              <div class="form-group">
-                <label>Poster</label>
-                <input type="file" @change="onPosterChange" accept="image/*" />
-              </div>
-              <div class="form-group">
-                <label>Link Film</label>
-                <input type="url" v-model="singleUpdateMovieForm.linkFilmUrl" required placeholder="URL của phim" />
+                <div class="form-group">
+                  <label>Poster</label>
+                  <input type="file" @change="onPosterChangen" accept="image/*" />
+                </div>
+                <div class="form-group">
+                  <label>Link Film</label>
+                  <input type="url" v-model="singleMovieForm.linkFilmUrl" required placeholder="URL của phim" />
+                </div>
               </div>
             </div>
-          </div>
-
-          <div class="button-group">
-            <button type="submit" class="submit-button">
-              {{ singleUpdateMovieForm.update ? 'Cập nhật' : 'Thêm Phim' }}
-            </button>
-            <button type="button" class="cancel-button" @click="cancelUpdateSingleMovieForm">Hủy</button>
-          </div>
-        </form>
+            <div class="button-group">
+              <button type="submit" class="submit-button">
+                {{ singleMovieForm.update ? 'Cập nhật' : 'Thêm Phim' }}
+              </button>
+              <button type="button" class="cancel-button" @click="cancelSingleMovieForm">Hủy</button>
+            </div>
+          </form>
+        </div>
       </div>
-    </div>
+    <!-- Form sửa phim lẻ -->
+    <div v-if="showUpdateSingleMovieForm" class="form-overlay">
+        <div class="form-container">
+          <h2>Chỉnh sửa Phim</h2>
+          <form @submit.prevent="UpdateMovie" class="movie-form">
+            <div class="form-columns">
+              <div class="form-column left-column">
+                <div class="form-group">
+                  <label>ID</label>
+                  <input type="text" v-model="singleUpdateMovieForm.movieId" required />
+                </div>
+                <div class="form-group">
+                  <label>Tên phim</label>
+                  <input type="text" v-model="singleUpdateMovieForm.title" required />
+                </div>
+                <div class="form-group">
+                  <label>Diễn viên</label>
+                  <multiselect v-model="singleUpdateMovieForm.actors" :options="actorOptions" label="name" track-by="id"
+                    placeholder="Chọn diễn viên" :multiple="true"></multiselect>
+                </div>
+                <div class="form-group">
+                  <label>Đạo diễn</label>
+                  <select v-model="singleUpdateMovieForm.directorId" required>
+                    <option v-for="director in directorOptions" :value="director.id" :key="director.id">
+                      {{ director.name }}
+                    </option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label>Năm Phát Hành</label>
+                  <input type="text" v-model="singleUpdateMovieForm.yearReleased" required />
+                </div>
+                <div class="form-group">
+                  <label>Trạng thái</label>
+                  <select v-model="singleUpdateMovieForm.status" required>
+                    <option value="Công chiếu">Công chiếu</option>
+                    <option value="Sắp ra mắt">Sắp ra mắt</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Mô tả</label>
+                  <input type="text" v-model="singleUpdateMovieForm.description" required />
+                </div>
+                <div class="form-group">
+                  <label>Hot</label>
+                  <select v-model="singleUpdateMovieForm.isHot" required>
+                    <option value="true">True</option>
+                    <option value="false">False</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-column right-column">
+                <div class="form-group">
+                  <label>Rating</label>
+                  <input v-model="singleUpdateMovieForm.rating" type="number" step="0.1" min="0.1" max="10" required />
+                </div>
+                <div class="form-group">
+                  <label>Thể Loại</label>
+                  <multiselect v-model="singleUpdateMovieForm.categories" :options="categorieOptions" label="name"
+                    track-by="id" placeholder="Chọn thể loại" :multiple="true"></multiselect>
+                </div>
+                <div class="form-group">
+                  <label>Quốc gia</label>
+                  <input type="text" v-model="singleUpdateMovieForm.nation" required />
+                </div>
+                <div class="form-group">
+                  <label>Avatar</label>
+                  <input type="file" @change="onAvatarChangee" accept="image/*" />
+                  <img v-if="avatarPreview" :src="avatarPreview" alt="Avatar Preview"
+                    style="width: 150px; height: auto; margin-top: 10px;" />
+                </div>
+
+                <div class="form-group">
+                  <label>Poster</label>
+                  <input type="file" @change="onPosterChange" accept="image/*" />
+                </div>
+                <div class="form-group">
+                  <label>Link Film</label>
+                  <input type="url" v-model="singleUpdateMovieForm.linkFilmUrl" required placeholder="URL của phim" />
+                </div>
+              </div>
+            </div>
+
+            <div class="button-group">
+              <button type="submit" class="submit-button">
+                {{ singleUpdateMovieForm.update ? 'Cập nhật' : 'Thêm Phim' }}
+              </button>
+              <button type="button" class="cancel-button" @click="cancelUpdateSingleMovieForm">Hủy</button>
+            </div>
+          </form>
+        </div>
+      </div>
     <!-- Form Thêm Phim bộ -->
     <div v-if="showSeriesMovieForm" class="form-overlay">
       <div class="form-container">
@@ -554,11 +550,9 @@
               </div>
 
               <div class="form-group">
-                <label>Poster</label>
-                <input type="file" @change="onPosterChange" accept="image/*" />
-                <img v-if="posterPreview" :src="posterPreview" alt="Poster Preview"
-                  style="width: 150px; height: auto; margin-top: 10px;" />
-              </div>
+                  <label>Poster</label>
+                  <input type="file" @change="onPosterChange" accept="image/*" />
+                </div>
             </div>
           </div>
 
@@ -618,7 +612,6 @@ import axios from "axios";
 import { ref } from "vue";
 import Multiselect from "vue-multiselect";
 import "vue-multiselect/dist/vue-multiselect.min.css";
-import imageCompression from "browser-image-compression";
 const currentTab = ref("movies"); // Tab mặc định là "Phim Lẻ"
 const paginatedMovies = ref([]); // Dữ liệu phim lẻ
 const paginatedSeries = ref([]); // Dữ liệu phim bộ
@@ -651,6 +644,8 @@ export default {
       allSeries: [],
       loading: false,
       error: null,
+      avatarFile: null,
+      posterFile: null,
       avatarPreview: null,
       posterPreview: null,
       currentTab: "movies",
@@ -773,7 +768,7 @@ export default {
     async fetchActorOptions() {
       // Gọi API để lấy danh sách diễn viên
       try {
-        const response = await axios.get("http://localhost:5289/api/AdminActor", {
+        const response = await axios.get("http://localhost:5148/api/AdminActor", {
           params: {
             search: "",
             sortBy: "ActorId",
@@ -795,7 +790,10 @@ export default {
     watch: {
       showSingleMovieForm(newVal) {
         if (newVal) {
-          this.fetchActorOptions(); // Tải danh sách diễn viên khi hiển thị form
+          this.fetchActorOptions();
+          this.fetchcategorieOptions();
+          this.fetchdirectorOptions();
+          
         }
       },
     },
@@ -803,6 +801,9 @@ export default {
       showUpdateSingleMovieForm(newVal) {
         if (newVal) {
           this.fetchActorOptions(); // Tải danh sách diễn viên khi hiển thị form
+          this.fetchcategorieOptions();
+          this.fetchdirectorOptions();
+          
         }
       },
     },
@@ -810,7 +811,9 @@ export default {
     watch: {
       showSeriesMovieForm(newVal) {
         if (newVal) {
-          this.fetchActorOptions(); // Tải danh sách diễn viên khi hiển thị form
+          this.fetchActorOptions();
+          this.fetchcategorieOptions();
+          this.fetchdirectorOptions();
         }
       },
     },
@@ -824,7 +827,7 @@ export default {
     async fetchcategorieOptions() {
       // Gọi API để lấy danh sách thể loại
       try {
-        const response = await axios.get("http://localhost:5289/api/AdminCategories", {
+        const response = await axios.get("http://localhost:5148/api/AdminCategories", {
           params: {
             search: "",
             sortBy: "CategoryId",
@@ -842,26 +845,10 @@ export default {
         console.error("Lỗi khi tải danh sách diễn viên:", error);
       }
     },
-    watch: {
-      showSingleMovieForm(newVal) {
-        if (newVal) {
-          console.log(2)
-          this.fetchcategorieOptions(); // Tải danh sách diễn viên khi hiển thị form
-        }
-      },
-    },
-    watch: {
-      showSeriesMovieForm(newVal) {
-        if (newVal) {
-          console.log(2)
-          this.fetchcategorieOptions(); // Tải danh sách diễn viên khi hiển thị form
-        }
-      },
-    },
     async fetchdirectorOptions() {
       // Gọi API để lấy danh sách đạo diễn
       try {
-        const response = await axios.get("http://localhost:5289/api/AdminDirectors/List-Directors", {
+        const response = await axios.get("http://localhost:5148/api/AdminDirectors/List-Directors", {
           params: {
             search: "",
             sortBy: "DirectorId",
@@ -879,51 +866,19 @@ export default {
         console.error("Lỗi khi tải danh sách diễn viên:", error);
       }
     },
-    watch: {
-      showSingleMovieForm(newVal) {
-        if (newVal) {
-          console.log(1)
-          this.fetchdirectorOptions(); // Tải danh sách diễn viên khi hiển thị form
-        }
-      },
-      showSeriesMovieForm(newVal) {
-        if (newVal) {
-          console.log(1)
-          this.fetchdirectorOptions(); // Tải danh sách diễn viên khi hiển thị form
-        }
-      },
-    },
-
     // Movie
-    async onAvatarChange(event) {
-      const file = event.target.files[0];
-      if (file) {
-        const options = { maxSizeMB: 1, maxWidthOrHeight: 1024, useWebWorker: true };
-        const compressedFile = await imageCompression(file, options);
-        this.singleMovieForm.avatarFile = compressedFile;
-        console.log("Compressed avatar file:", compressedFile);
-      }
-    },
-    onAvatarChange(event) {
-      const file = event.target.files[0];
-      if (file) {
-        this.singleMovieForm.avatarFile = file;
-        console.log("Avatar file:", file); // Log để kiểm tra file đã được gắn
-      } else {
-        alert("File hình đại diện chưa được chọn!");
-      }
-    },
-
-    onPosterChange(event) {
-      const file = event.target.files[0];
-      if (file) {
-        this.singleMovieForm.posterFile = file;
-        console.log("Poster file:", file); // Log để kiểm tra file đã được gắn
-      } else {
-        alert("File poster chưa được chọn!");
-      }
-    },
-
+    onAvatarChangen(event) {
+  const file = event.target.files[0];
+  this.avatarFile = file;
+  this.avatarPreview = URL.createObjectURL(file);
+  this.singleMovieForm.avatarFile = file; 
+},
+onPosterChangen(event) {
+  const file = event.target.files[0];
+  this.posterFile = file;
+  this.posterPreview = URL.createObjectURL(file);
+  this.singleMovieForm.posterFile = file;
+},
     onAvatarChangee(event) {
       const file = event.target.files[0];
       if (file) {
@@ -1039,7 +994,7 @@ export default {
 
         // Gửi yêu cầu tới API
         const response = await axios.post(
-          "http://localhost:5289/api/AdminMovies/AddMovie",
+          "http://localhost:5148/api/AdminMovies/AddMovie",
           formData,
           {
             headers: { "Content-Type": "multipart/form-data" },
@@ -1115,7 +1070,7 @@ export default {
 
         // Gửi yêu cầu tới API
         const response = await axios.put(
-          `http://localhost:5289/api/AdminMovies/UpdateMovie/${movieId}`,
+          `http://localhost:5148/api/AdminMovies/UpdateMovie/${movieId}`,
           formData,
           {
             headers: {
@@ -1140,7 +1095,7 @@ export default {
       this.loading = true;
       this.error = null;
       try {
-        const response = await axios.get("http://localhost:5289/api/AdminMovies", {
+        const response = await axios.get("http://localhost:5148/api/AdminMovies", {
           params: {
             sortBy: "Title",
             search: this.searchQuery.trim()
@@ -1186,7 +1141,7 @@ export default {
           const movieId = this.allMovies[globalIndex].movieId;
 
           // Gửi yêu cầu xóa phim tới server
-          await axios.delete(`http://localhost:5289/api/AdminMovies/de/${movieId}`);
+          await axios.delete(`http://localhost:5148/api/AdminMovies/de/${movieId}`);
 
           // Làm mới danh sách phim
           this.fetchMovies();
@@ -1199,7 +1154,7 @@ export default {
       this.loading = true;
       this.error = null;
       try {
-        const response = await axios.get("http://localhost:5289/api/AdminSeries", {
+        const response = await axios.get("http://localhost:5148/api/AdminSeries", {
           params: {
             sortBy: "Title",
             search: this.searchQuery.trim()
@@ -1252,7 +1207,7 @@ export default {
 
         // Gửi yêu cầu xóa phim tới server
         const response = await axios.delete(
-          `http://localhost:5289/api/AdminSeries/soft-delete/${seriesId}`,
+          `http://localhost:5148/api/AdminSeries/soft-delete/${seriesId}`,
           {
             headers: {
               accept: "*/*", // Header theo yêu cầu của API
@@ -1278,7 +1233,7 @@ export default {
         try {
           // Gọi API để lấy danh sách tập phim
           const response = await axios.get(
-            `http://localhost:5289/api/AdminEpisode/BySeries/${series.seriesId}?pageNumber=1&pageSize=100`
+            `http://localhost:5148/api/AdminEpisode/BySeries/${series.seriesId}?pageNumber=1&pageSize=100`
           );
           console.log(response.data); // Kiểm tra dữ liệu API trả về
 
@@ -1313,7 +1268,7 @@ export default {
         formData.append("LinkFilmUrl", this.newEpisode.linkFilmUrl);
 
         const response = await axios.post(
-          "http://localhost:5289/api/AdminEpisode/AddEpisode",
+          "http://localhost:5148/api/AdminEpisode/AddEpisode",
           formData,
           { headers: { "Content-Type": "multipart/form-data" } }
         );
@@ -1365,7 +1320,7 @@ export default {
         }
 
         // Gửi yêu cầu PUT với dữ liệu JSON
-        const response = await axios.put(`http://localhost:5289/api/AdminEpisode/UpdateEpisode/${episodeData.episodeId}`, episodeData, {
+        const response = await axios.put(`http://localhost:5148/api/AdminEpisode/UpdateEpisode/${episodeData.episodeId}`, episodeData, {
           headers: { "Content-Type": "application/json-patch+json" }
         });
 
@@ -1402,7 +1357,7 @@ export default {
 
     deleteEpisode(episodeId, seriesId) {
       if (confirm("Bạn có chắc muốn xóa tập phim này không?")) {
-        axios.delete(`http://localhost:5289/api/AdminEpisode/DeleteEpisode/${episodeId}`)
+        axios.delete(`http://localhost:5148/api/AdminEpisode/DeleteEpisode/${episodeId}`)
           .then(() => {
             const series = this.seriesList.find(s => s.seriesId === seriesId);
             if (series) {
@@ -1472,7 +1427,7 @@ export default {
 
         // Thực hiện yêu cầu API
         const response = await axios.post(
-          "http://localhost:5289/api/AdminSeries/AddSeries",
+          "http://localhost:5148/api/AdminSeries/AddSeries",
           formData,
           {
             headers: {
@@ -1548,7 +1503,7 @@ export default {
 
         // Gửi yêu cầu cập nhật API
         const response = await axios.put(
-          `http://localhost:5289/api/AdminSeries/UpdateSeries/${seriesId}`,
+          `http://localhost:5148/api/AdminSeries/UpdateSeries/${seriesId}`,
           formData,
           {
             headers: {
@@ -1600,16 +1555,6 @@ export default {
     },
     searchSeries() {
       this.fetchSeries(); // Tải phim bộ dựa vào API (hỗ trợ tìm kiếm nếu API được cấu hình)
-    },
-    selectTab(tab) {
-      this.currentTab = tab;
-      this.searchQuery = "";
-      this.page = 1;
-      if (tab === "movies") {
-        this.fetchMovies();
-      } else if (tab === "series") {
-        this.fetchSeries();
-      }
     },
 
     editMovie(index) {
