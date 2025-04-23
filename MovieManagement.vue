@@ -3,7 +3,7 @@
     <aside class="sidebar">
       <h2> Bảng điều khiển </h2>
       <ul>
-        <li><router-link to="/admin">Quản lý phim</router-link></li>
+        <li><router-link to="/">Quản lý phim</router-link></li>
         <li><router-link to="/admin/actors">Quản lí diễn viên </router-link></li>
         <li><router-link to="/admin/directors">Quản lí đạo diễn </router-link></li>
         <li><router-link to="/admin/categories">Thể Loại</router-link></li>
@@ -20,7 +20,7 @@
         <button @click="selectTab('series')" :class="{ active: currentTab === 'series' }">Phim Bộ</button>
       </div>
 
-      <!-- Danh sách phim -->
+      <!-- Danh sách phim lẻ -->
       <div v-if="currentTab === 'movies'" class="tab-content">
         <h2>Quản lý Phim Lẻ</h2>
         <button @click="showSingleMovieForm = true" class="add-button">Thêm Phim Lẻ</button>
@@ -158,7 +158,6 @@
                       <thead>
                         <tr>
                           <th>Tập</th>
-                          <th>Tiêu đề</th>
                           <th>Link</th>
                           <th>Hành động</th>
                         </tr>
@@ -166,7 +165,6 @@
                       <tbody>
                         <tr v-for="episode in series.episodes" :key="episode.episodeId">
                           <td>Tập {{ episode.episodeNumber }}</td>
-                          <td>{{ episode.title }}</td>
                           <td><a :href="episode.linkFilmUrl" target="_blank">Xem</a></td>
                           <td>
                             <button @click="openEditEpisodeModal(episode)" class="edit-button">Sửa</button>
@@ -265,10 +263,12 @@
               <div class="form-group">
                 <label>Poster</label>
                 <input type="file" @change="onPosterChangen" accept="image/*" />
+                <img v-if="posterPreview" :src="posterPreview" alt="Poster Preview"
+                  style="width: 150px; height: auto; margin-top: 10px;" />
               </div>
               <div class="form-group">
                 <label>Link Film</label>
-                <input type="url" v-model="singleMovieForm.linkFilmUrl" required placeholder="URL của phim" />
+                <input v-model="singleMovieForm.linkFilmUrl" required placeholder="URL của phim" />
               </div>
             </div>
           </div>
@@ -301,7 +301,8 @@
               <div class="form-group">
                 <label>Diễn viên</label>
                 <multiselect v-model="singleUpdateMovieForm.actors" :options="actorOptions" label="name" track-by="id"
-                  placeholder="Chọn diễn viên" :multiple="true"></multiselect>
+                  placeholder="Chọn diễn viên" :multiple="true" :close-on-select="false" :preserve-search="true"
+                  :show-labels="true"></multiselect>
               </div>
               <div class="form-group">
                 <label>Đạo diễn</label>
@@ -352,18 +353,20 @@
 
               <div class="form-group">
                 <label>Poster</label>
-                <input type="file" @change="onPosterChange" accept="image/*" />
+                <input type="file" @change="onPosterChangee" accept="image/*" />
+                <img v-if="posterPreview" :src="posterPreview" alt="Poster Preview"
+                  style="width: 150px; height: auto; margin-top: 10px;" />
               </div>
               <div class="form-group">
                 <label>Link Film</label>
-                <input type="url" v-model="singleUpdateMovieForm.linkFilmUrl" required placeholder="URL của phim" />
+                <input v-model="singleUpdateMovieForm.linkFilmUrl" required placeholder="URL của phim" />
               </div>
             </div>
           </div>
 
           <div class="button-group">
             <button type="submit" class="submit-button">
-              {{ singleUpdateMovieForm.update ? 'Cập nhật' : 'Thêm Phim' }}
+              {{ singleUpdateMovieForm.update ? 'Cập nhật' : 'Cập Nhật Phim' }}
             </button>
             <button type="button" class="cancel-button" @click="cancelUpdateSingleMovieForm">Hủy</button>
           </div>
@@ -519,14 +522,14 @@
               </div>
               <div class="form-group">
                 <label>Avatar</label>
-                <input type="file" @change="onAvatarChange" accept="image/*" />
+                <input type="file" @change="onAvatarChangenn" accept="image/*" />
                 <img v-if="avatarPreview" :src="avatarPreview" alt="Avatar Preview"
                   style="width: 150px; height: auto; margin-top: 10px;" />
               </div>
 
               <div class="form-group">
                 <label>Poster</label>
-                <input type="file" @change="onPosterChange" accept="image/*" />
+                <input type="file" @change="onPosterChangenn" accept="image/*" />
                 <img v-if="posterPreview" :src="posterPreview" alt="Poster Preview"
                   style="width: 150px; height: auto; margin-top: 10px;" />
               </div>
@@ -535,7 +538,7 @@
 
           <div class="button-group">
             <button type="submit" class="submit-button">
-              {{ seriesUpdateMovieForm.update ? 'Cập nhật' : 'Thêm Phim' }}
+              {{ seriesUpdateMovieForm.update ? 'Cập nhật' : 'Cập Nhật Phim' }}
             </button>
             <button type="button" class="cancel-button" @click="cancelUpdateSeriesMovieForm">Hủy</button>
           </div>
@@ -549,11 +552,8 @@
         <label for="episodeNumber">Số tập:</label>
         <input v-model="newEpisode.episodeNumber" type="number" min="1" id="episodeNumber" required />
 
-        <label for="title">Tiêu đề:</label>
-        <input v-model="newEpisode.title" type="text" id="title" required />
-
         <label for="linkFilmUrl">Link phim:</label>
-        <input v-model="newEpisode.linkFilmUrl" type="url" id="linkFilmUrl" required />
+        <input v-model="newEpisode.linkFilmUrl" id="linkFilmUrl" required />
 
         <!-- Container chứa nút Thêm và Hủy -->
         <div class="buttons-container">
@@ -570,11 +570,8 @@
         <label for="editEpisodeNumber">Số tập:</label>
         <input v-model="editingEpisode.episodeNumber" type="number" min="1" id="editEpisodeNumber" required />
 
-        <label for="editTitle">Tiêu đề:</label>
-        <input v-model="editingEpisode.title" type="text" id="editTitle" required />
-
         <label for="editLinkFilmUrl">Link phim:</label>
-        <input v-model="editingEpisode.linkFilmUrl" type="url" id="editLinkFilmUrl" required />
+        <input v-model="editingEpisode.linkFilmUrl" id="editLinkFilmUrl" required />
 
         <div class="buttons-container">
           <button @click="updateEpisode">Cập nhật Tập Phim</button>
@@ -746,7 +743,7 @@ export default {
             sortBy: "ActorId",
             sortDirection: "asc",
             page: 1,
-            pageSize: 50, // Hiển thị tất cả diễn viên trong một lần tải
+            pageSize: 70, // Hiển thị tất cả diễn viên trong một lần tải
           },
         });
 
@@ -762,14 +759,18 @@ export default {
     watch: {
       showSingleMovieForm(newVal) {
         if (newVal) {
-          this.fetchActorOptions(); // Tải danh sách diễn viên khi hiển thị form
+          this.fetchActorOptions();
+          this.fetchcategorieOptions();// Tải danh sách diễn viên khi hiển thị form
+          this.fetchdirectorOptions();
         }
       },
     },
     watch: {
       showUpdateSingleMovieForm(newVal) {
         if (newVal) {
-          this.fetchActorOptions(); // Tải danh sách diễn viên khi hiển thị form
+          this.fetchActorOptions();
+          this.fetchcategorieOptions();
+          this.fetchdirectorOptions();
         }
       },
     },
@@ -777,7 +778,9 @@ export default {
     watch: {
       showSeriesMovieForm(newVal) {
         if (newVal) {
-          this.fetchActorOptions(); // Tải danh sách diễn viên khi hiển thị form
+          this.fetchActorOptions();
+          this.fetchcategorieOptions();// Tải danh sách diễn viên khi hiển thị form
+          this.fetchdirectorOptions();
         }
       },
     },
@@ -797,7 +800,7 @@ export default {
             sortBy: "CategoryId",
             sortDirection: "asc",
             page: 1,
-            pageSize: 50, // Hiển thị tất cả diễn viên trong một lần tải
+            pageSize: 70, // Hiển thị tất cả diễn viên trong một lần tải
           },
         });
 
@@ -809,22 +812,6 @@ export default {
         console.error("Lỗi khi tải danh sách diễn viên:", error);
       }
     },
-    watch: {
-      showSingleMovieForm(newVal) {
-        if (newVal) {
-          console.log(2)
-          this.fetchcategorieOptions(); // Tải danh sách diễn viên khi hiển thị form
-        }
-      },
-    },
-    watch: {
-      showSeriesMovieForm(newVal) {
-        if (newVal) {
-          console.log(2)
-          this.fetchcategorieOptions(); // Tải danh sách diễn viên khi hiển thị form
-        }
-      },
-    },
     async fetchdirectorOptions() {
       // Gọi API để lấy danh sách đạo diễn
       try {
@@ -834,7 +821,7 @@ export default {
             sortBy: "DirectorId",
             sortDirection: "asc",
             page: 1,
-            pageSize: 50, // Hiển thị tất cả diễn viên trong một lần tải
+            pageSize: 70, // Hiển thị tất cả diễn viên trong một lần tải
           },
         });
 
@@ -845,20 +832,6 @@ export default {
       } catch (error) {
         console.error("Lỗi khi tải danh sách diễn viên:", error);
       }
-    },
-    watch: {
-      showSingleMovieForm(newVal) {
-        if (newVal) {
-          console.log(1)
-          this.fetchdirectorOptions(); // Tải danh sách diễn viên khi hiển thị form
-        }
-      },
-      showSeriesMovieForm(newVal) {
-        if (newVal) {
-          console.log(1)
-          this.fetchdirectorOptions(); // Tải danh sách diễn viên khi hiển thị form
-        }
-      },
     },
 
     // Movie
@@ -878,17 +851,17 @@ export default {
       const file = event.target.files[0];
       if (file) {
         this.avatarPreview = URL.createObjectURL(file);
-        this.singleUpdateMovieForm.avatarFile = event.target.files[0];
+        this.singleUpdateMovieForm.avatarFile = file; // Lưu file vào form
       } else {
         this.avatarPreview = null;
       }
     },
+
     onPosterChangee(event) {
-      console.log(event.target.files);
       const file = event.target.files[0];
       if (file) {
         this.posterPreview = URL.createObjectURL(file);
-        this.singleUpdateMovieForm.posterFile = event.target.files[0];
+        this.singleUpdateMovieForm.posterFile = file; // Lưu file vào form
       } else {
         this.posterPreview = null;
       }
@@ -913,7 +886,7 @@ export default {
         this.posterPreview = null;
       }
     },
-    onAvatarChangee(event) {
+    onAvatarChangenn(event) {
       const file = event.target.files[0];
       if (file) {
         this.avatarPreview = URL.createObjectURL(file);
@@ -922,7 +895,7 @@ export default {
         this.avatarPreview = null;
       }
     },
-    onPosterChangee(event) {
+    onPosterChangenn(event) {
       console.log(event.target.files);
       const file = event.target.files[0];
       if (file) {
@@ -1039,7 +1012,7 @@ export default {
         const formData = new FormData();
         formData.append("ID", movieId);
         formData.append("Title", title);
-        formData.append("Description", description || "");
+        formData.append("Description", description);
         formData.append("DirectorId", directorId);
         formData.append("Nation", nation);
         formData.append("YearReleased", yearReleased);
@@ -1048,14 +1021,8 @@ export default {
         formData.append("ActorIds", actors.map((actor) => actor.id).join(","));
         formData.append("CategoryIds", categories.map((cat) => cat.id).join(","));
         formData.append("LinkFilmUrl", linkFilmUrl || "");
-
-        // Chỉ thêm file nếu người dùng chọn file mới
-        if (posterFile) {
-          formData.append("posterFile", posterFile);
-        }
-        if (avatarFile) {
-          formData.append("AvatarUrlFile", avatarFile);
-        }
+        formData.append("posterFile", posterFile); // Đồng nhất với API
+        formData.append("AvatarUrlFile", avatarFile);
 
         // Xác nhận trước khi gửi
         if (!confirm("Bạn có chắc chắn muốn cập nhật phim này không?")) {
@@ -1091,12 +1058,11 @@ export default {
       try {
         const response = await axios.get("http://localhost:5289/api/AdminMovies", {
           params: {
-            sortBy: "Title",
+
             search: this.searchQuery.trim()
           },
         });
         this.movieList = (Array.isArray(response.data) ? response.data : []).sort(
-          (a, b) => a.movieId - b.movieId
         );
 
 
@@ -1150,7 +1116,6 @@ export default {
       try {
         const response = await axios.get("http://localhost:5289/api/AdminSeries", {
           params: {
-            sortBy: "Title",
             search: this.searchQuery.trim()
           },
         });
@@ -1161,7 +1126,7 @@ export default {
             showEpisodes: false,
             episodes: []
           }))
-          .sort((a, b) => a.seriesId - b.seriesId);
+          .sort();
 
         this.allSeries = Array.isArray(response.data) ? response.data : [];
         this.totalSeriesPages = Math.ceil(this.allSeries.length / this.itemsPerPage);
@@ -1212,7 +1177,7 @@ export default {
         // Hiển thị thông báo thành công
         alert(response.data.message || "Phim đã được xóa mềm thành công!");
         console.log("Kết quả xóa mềm:", response.data);
-
+        this.fetchSeries();
         // Loại bỏ phim đã xóa khỏi danh sách hiển thị
         this.allSeries.splice(globalIndex, 1); // Xóa khỏi danh sách gốc
         this.updateSeriesPagination(); // Cập nhật lại danh sách phân trang
@@ -1247,7 +1212,6 @@ export default {
       this.selectedSeriesId = seriesId;
       this.newEpisode = {
         episodeNumber: 1,
-        title: '',
         linkFilmUrl: ''
       };
       this.showAddEpisodeModal = true;
@@ -1258,7 +1222,6 @@ export default {
         const formData = new FormData();
         formData.append("SeriesId", this.selectedSeriesId);
         formData.append("EpisodeNumber", this.newEpisode.episodeNumber);
-        formData.append("Title", this.newEpisode.title);
         formData.append("LinkFilmUrl", this.newEpisode.linkFilmUrl);
 
         const response = await axios.post(
@@ -1287,7 +1250,6 @@ export default {
       this.showAddEpisodeModal = false;
       this.newEpisode = {
         episodeNumber: '',
-        title: '',
         linkFilmUrl: ''
       };
     },
@@ -1299,39 +1261,39 @@ export default {
 
     async updateEpisode() {
       try {
-        const episodeData = {
-          episodeId: this.editingEpisode.episodeId,
-          seriesId: this.editingEpisode.seriesId,
-          episodeNumber: this.editingEpisode.episodeNumber,
-          title: this.editingEpisode.title,
-          linkFilmUrl: this.editingEpisode.linkFilmUrl
-        };
+        // Tạo đối tượng FormData
+        const formData = new FormData();
+        formData.append('newLink', this.editingEpisode.linkFilmUrl); // Gửi link phim mới
 
-        // Kiểm tra xem seriesId có hợp lệ không
-        if (episodeData.seriesId === null) {
-          alert("Vui lòng chọn một series hợp lệ.");
-          return; // Dừng lại nếu seriesId không hợp lệ
+        // Kiểm tra xem seriesId và episodeNumber có hợp lệ không
+        if (!this.editingEpisode.seriesId || !this.editingEpisode.episodeNumber) {
+          alert("Vui lòng chọn một series và số tập hợp lệ.");
+          return; // Dừng lại nếu không hợp lệ
         }
 
-        // Gửi yêu cầu PUT với dữ liệu JSON
-        const response = await axios.put(`http://localhost:5289/api/AdminEpisode/UpdateEpisode/${episodeData.episodeId}`, episodeData, {
-          headers: { "Content-Type": "application/json-patch+json" }
-        });
+        // Gửi yêu cầu PUT với dữ liệu FormData
+        const response = await axios.put(
+          `http://localhost:5289/api/AdminEpisode/UpdateEpisode?seriesId=${this.editingEpisode.seriesId}&episodeNumber=${this.editingEpisode.episodeNumber}`,
+          formData,
+          {
+            headers: { "Content-Type": "multipart/form-data" } // Đặt header đúng
+          }
+        );
 
         // Kiểm tra phản hồi từ server
-        if (response.status === 204) {
+        if (response.status === 200) {
           // Hiển thị thông báo sửa thành công
           if (this.$toast) {
             this.$toast.success("Tập phim đã được sửa thành công!");
           }
 
           // Cập nhật danh sách tập phim
-          const series = this.seriesList.find(s => s.seriesId === episodeData.seriesId);
+          const series = this.seriesList.find(s => s.seriesId === this.editingEpisode.seriesId);
           if (series) {
-            const updatedEpisodeIndex = series.episodes.findIndex(episode => episode.episodeId === episodeData.episodeId);
+            const updatedEpisodeIndex = series.episodes.findIndex(episode => episode.episodeNumber === this.editingEpisode.episodeNumber);
             if (updatedEpisodeIndex !== -1) {
               // Cập nhật thông tin tập phim trong danh sách
-              series.episodes[updatedEpisodeIndex] = { ...series.episodes[updatedEpisodeIndex], ...episodeData };
+              series.episodes[updatedEpisodeIndex].linkFilmUrl = this.editingEpisode.linkFilmUrl;
             }
           }
 
@@ -1506,19 +1468,14 @@ export default {
           }
         );
 
-        // Xử lý phản hồi thành công
-        alert(response.data.message || "Cập nhật phim bộ thành công!");
-        console.log("Kết quả cập nhật:", response.data);
-
-        // Làm mới danh sách phim
-        await this.fetchSeries(); // Làm mới danh sách
+        // Hiển thị thông báo thành công
+        alert("Cập nhật phim thành công!");
+        this.fetchSeries(); // Làm mới danh sách phim
         this.showUpdateSeriesMovieForm = false; // Ẩn form chỉnh sửa
+
       } catch (error) {
-        // Xử lý lỗi chi tiết
-        console.error(
-          "Lỗi khi cập nhật phim bộ:",
-          error.response?.data || error.message
-        );
+        // Xử lý lỗi và log chi tiết
+        console.error("Lỗi khi cập nhật phim:", error.response?.data?.message || error.message);
         alert(`Đã xảy ra lỗi: ${error.response?.data?.message || error.message}`);
       }
     },
@@ -1591,7 +1548,12 @@ export default {
           name: cat.name,
         })) || [],
       };
-
+      // Kiểm tra giá trị của actors và categories
+      console.log('Actors:', this.singleUpdateMovieForm.actors);
+      console.log('Categories:', this.singleUpdateMovieForm.categories);
+      // Cập nhật preview ảnh và poster
+      this.avatarPreview = movie.avatarUrl || null; // Giả sử movie.avatarUrl chứa đường dẫn đến ảnh đại diện
+      this.posterPreview = movie.posterUrl || null; // Giả sử movie.posterUrl chứa đường dẫn đến poster
       this.showUpdateSingleMovieForm = true;
     },
 
@@ -1600,14 +1562,6 @@ export default {
       // Tính chỉ số toàn cục dựa trên phân trang
       const globalIndex = (this.page - 1) * this.itemsPerPage + index;
       const series = this.allSeries[globalIndex]; // Lấy đối tượng series từ danh sách gốc
-
-      // Đảm bảo đối tượng series tồn tại
-      if (!series || !series.seriesId) {
-        console.error("Lỗi: series hoặc seriesId không tồn tại!");
-        alert("Không tìm thấy thông tin series để chỉnh sửa!");
-        return;
-      }
-
       // Chuyển đổi dữ liệu để đưa vào form chỉnh sửa
       this.seriesUpdateMovieForm = {
         seriesId: series.seriesId, // Lấy seriesId từ đối tượng series
@@ -1619,20 +1573,25 @@ export default {
         rating: series.rating || "",
         isHot: series.isHot || false,
         linkFilmUrl: series.linkFilmUrl || "",
+        season: series.season || "",
         posterFile: null, // Người dùng cần tải lại poster
         avatarFile: null, // Người dùng cần tải lại avatar
 
-        // Chuyển actor từ API về dạng multiselect [{id, name}]
-        actors: series.actorIds
-          ? series.actorIds.split(",").map(id => ({ id: parseInt(id), name: "" }))
-          : [],
+        // Chuyển actor từ API về multiselect [{id, name}]
+        actors: series.actors?.map(actor => ({
+          id: actor.id,
+          name: actor.name,
+        })) || [],
 
-        // Chuyển categories từ API về dạng multiselect [{id, name}]
-        categories: series.categoryIds
-          ? series.categoryIds.split(",").map(id => ({ id: parseInt(id), name: "" }))
-          : [],
+        // Chuyển categories từ API về multiselect [{id, name}]
+        categories: series.categories?.map(cat => ({
+          id: cat.id,
+          name: cat.name,
+        })) || [],
       };
-
+      // Cập nhật preview ảnh và poster
+      this.avatarPreview = series.avatarUrl || null; // Giả sử movie.avatarUrl chứa đường dẫn đến ảnh đại diện
+      this.posterPreview = series.posterUrl || null; // Giả sử movie.posterUrl chứa đường dẫn đến poster
       // Hiển thị form chỉnh sửa
       this.showUpdateSeriesMovieForm = true;
     },
